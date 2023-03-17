@@ -1,8 +1,10 @@
 from os import listdir
 from os.path import isfile, join
 import ipaddress
+import time
 import json
 
+addresses = ["88.208.226.171", "5.255.231.136", "114.119.142.210", "86.175.68.147", "185.195.232.142"]
 
 class GeoIPLookup:
     def __init__(self, disk_only=False):
@@ -33,27 +35,24 @@ class GeoIPLookup:
                                 self.__ip_dict[halves[0]][halves[1]] = [entry]
                             except KeyError:
                                 self.__ip_dict[halves[0]] = {halves[1]:[entry]}
-            # optimise the dict for fastest access
-            self.__optimise()
-            
-    def __optimise(self):
-        print("done!")
-        if not self.config['disk_only']:
-            print(self.query("1.5.1.25"))
-            print(self.query("7.64.6.32"))
-            print(self.query("88.124.42.1"))
-            print(self.query("121.51.21.15"))
-            print(self.query("51.41.211.51"))
-            print(self.query("78.21.21.41"))
             
     def query(self, address):
         address = int(ipaddress.IPv4Address(address))
         halves = list(map(''.join, zip(*[iter(str(address))]*4)))
         halves[1] = halves[1][:2]
+        to_search = []
         for entry in self.__ip_dict[halves[0]][halves[1]]:
-            return entry
+            to_search.append(entry)
+        for entry in to_search:
+            if address > int(entry[0]):
+                if address < int(entry[1]):
+                    return entry
+        return []
 
 
+if __name__ == "__main__":
+    ip = GeoIPLookup()
+    print(ip.query("8.8.8.8"))
     
 
 
